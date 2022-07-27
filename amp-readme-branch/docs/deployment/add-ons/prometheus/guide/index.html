@@ -28,7 +28,7 @@
       "datePublished": "0001-01-01 00:00:00 \u002b0000 UTC",
       "dateModified" : "0001-01-01 00:00:00 \u002b0000 UTC",
       "url" : "https:\/\/BriannaRoskind.github.io\/kubeflow-manifests\/amp-readme-branch\/docs\/deployment\/add-ons\/prometheus\/guide\/",
-      "wordCount" : "463",
+      "wordCount" : "507",
       "keywords" : [ "Kubeflow" ]
   }
   </script>
@@ -49,12 +49,12 @@
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://BriannaRoskind.github.io/kubeflow-manifests/amp-readme-branch/docs/deployment/add-ons/prometheus/guide/" /><meta property="article:section" content="docs" />
 
-<meta property="article:modified_time" content="2022-07-26T20:43:14-07:00" /><meta property="og:site_name" content="Kubeflow on AWS" />
+<meta property="article:modified_time" content="2022-07-26T21:24:04-07:00" /><meta property="og:site_name" content="Kubeflow on AWS" />
 
 <meta itemprop="name" content="Prometheus">
 <meta itemprop="description" content="Use Prometheus, Amazon Managed Service for Prometheus, and Amazon Managed Grafana to monitor metrics with Kubeflow on AWS">
-<meta itemprop="dateModified" content="2022-07-26T20:43:14-07:00" />
-<meta itemprop="wordCount" content="463">
+<meta itemprop="dateModified" content="2022-07-26T21:24:04-07:00" />
+<meta itemprop="wordCount" content="507">
 <meta itemprop="keywords" content="" /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Prometheus"/>
 <meta name="twitter:description" content="Use Prometheus, Amazon Managed Service for Prometheus, and Amazon Managed Grafana to monitor metrics with Kubeflow on AWS"/>
@@ -304,10 +304,11 @@
 
 <div class="td-toc"><nav id="TableOfContents">
   <ul>
-    <li><a href="#why-you-should-use-prometheus-with-amazon-managed-service-for-prometheus-amp">Why you should use Prometheus with Amazon Managed Service for Prometheus (AMP)</a></li>
+    <li><a href="#why-you-should-use-prometheus-with-amazon-managed-service-for-prometheus-amp-and-amazon-managed-grafana-amg">Why you should use Prometheus with Amazon Managed Service for Prometheus (AMP) and Amazon Managed Grafana (AMG)</a></li>
     <li><a href="#prerequisites">Prerequisites</a></li>
     <li><a href="#steps-to-setup-prometheus-and-amp">Steps to Setup Prometheus and AMP</a></li>
     <li><a href="#steps-to-verify-prometheus-and-amp-are-connected">Steps to Verify Prometheus and AMP are Connected</a></li>
+    <li><a href="#steps-to-setup-amg">Steps to Setup AMG</a></li>
   </ul>
 </nav></div>
 
@@ -373,8 +374,8 @@
 
 		
 	</header>    
-	<p>This guide shows how to setup a Prometheus server and an AMP workspace. It also shows to validate the correctness of this setup.</p>
-<h2 id="why-you-should-use-prometheus-with-amazon-managed-service-for-prometheus-amp">Why you should use Prometheus with Amazon Managed Service for Prometheus (AMP)</h2>
+	<p>This guide shows how to setup a Prometheus server, an AMP workspace, and an AMG workspace on top of Kubeflow on AWS. It also explains to validate the ingestion of data from Prometheus to AMP.</p>
+<h2 id="why-you-should-use-prometheus-with-amazon-managed-service-for-prometheus-amp-and-amazon-managed-grafana-amg">Why you should use Prometheus with Amazon Managed Service for Prometheus (AMP) and Amazon Managed Grafana (AMG)</h2>
 <p>Many Kubeflow users utilize Prometheus and Grafana to monitor and visualize their metrics. However it can be difficult to scale open source Prometheus and Grafana as the number of nodes to be monitored increases. AMP seeks to simplify this issue by allowing multiple Prometheus servers to aggregate their metrics in Amazon Managed Prometheus, and finally Amazon Managed Grafana allows customers to then view these aggregated metrics.</p>
 <h2 id="prerequisites">Prerequisites</h2>
 <p>Download one of our deployment options by following the directions at: <a href="https://awslabs.github.io/kubeflow-manifests/docs/deployment/">https://awslabs.github.io/kubeflow-manifests/docs/deployment/</a></p>
@@ -505,11 +506,17 @@
 </ol>
 </li>
 </ol>
+<h2 id="steps-to-setup-amg">Steps to Setup AMG</h2>
+<ol>
+<li><a href="https://docs.aws.amazon.com/grafana/latest/userguide/getting-started-with-AMG.html">Create an Amazon Managed Grafana Workspace.</a></li>
+<li><a href="https://docs.aws.amazon.com/grafana/latest/userguide/AMP-adding-AWS-config.html">Add AMP as a data source.</a></li>
+<li><a href="https://docs.aws.amazon.com/grafana/latest/userguide/getting-started-grafanaui.html">Create a dashboard to visualize metrics from your AMP data source.</a></li>
+</ol>
 
 	
 	
 	<div class="text-muted mt-5 pt-3 border-top">
-  Last modified July 26, 2022: <a href="https://github.com/awslabs/kubeflow-manifests//commit/d5b06f7e163e1ced9f8b150b0a2b583f5d893ad2">Updated title and description for webpage. Now using bash code blocks for website usage. (d5b06f7)</a>
+  Last modified July 26, 2022: <a href="https://github.com/awslabs/kubeflow-manifests//commit/c9f8ae8c846fedcb310c25c699aca13fec599003">Added Amazon Managed Grafana Setup Instructions to the guide. (c9f8ae8)</a>
 </div>
 
 </div>
