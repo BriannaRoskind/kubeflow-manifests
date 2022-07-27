@@ -3012,5 +3012,149 @@ Take note of your &lt;code&gt;S3 bucket name&lt;/code&gt; to use in the followin
       </description>
     </item>
     
+    <item>
+      <title>Docs: </title>
+      <link>https://BriannaRoskind.github.io/kubeflow-manifests/amp-readme-branch/docs/deployment/add-ons/prometheus/guide/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://BriannaRoskind.github.io/kubeflow-manifests/amp-readme-branch/docs/deployment/add-ons/prometheus/guide/</guid>
+      <description>
+        
+        
+        &lt;h2 id=&#34;why-you-should-use-prometheus-with-amazon-managed-service-for-prometheus-amp&#34;&gt;Why you should use Prometheus with Amazon Managed Service for Prometheus (AMP)&lt;/h2&gt;
+&lt;p&gt;Many Kubeflow users utilize Prometheus and Grafana to monitor and visualize their metrics. However it can be difficult to scale open source Prometheus and Grafana as the number of nodes to be monitored increases. AMP seeks to simplify this issue by allowing multiple Prometheus servers to aggregate their metrics in Amazon Managed Prometheus, and finally Amazon Managed Grafana allows customers to then view these aggregated metrics.&lt;/p&gt;
+&lt;h2 id=&#34;prerequisites&#34;&gt;Prerequisites&lt;/h2&gt;
+&lt;p&gt;Download one of our deployment options by following the directions at: &lt;a href=&#34;https://awslabs.github.io/kubeflow-manifests/docs/deployment/&#34;&gt;https://awslabs.github.io/kubeflow-manifests/docs/deployment/&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Note:&lt;/strong&gt; The steps below will assume you are sitting in the kubeflow-manifests directory.&lt;/p&gt;
+&lt;h2 id=&#34;steps-to-setup-prometheus-and-amp&#34;&gt;Steps to Setup Prometheus and AMP&lt;/h2&gt;
+&lt;ol&gt;
+&lt;li&gt;Export cluster name and region as environment variables:
+&lt;ol&gt;
+&lt;li&gt;Make sure to replace the following in the below commands:
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;&amp;lt;your-cluster-name&amp;gt;&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;&amp;lt;your-cluster-region&amp;gt;&lt;/strong&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;export CLUSTER_NAME=&amp;lt;your-cluster-name&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/li&gt;
+&lt;li&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;export CLUSTER_REGION=&amp;lt;your-cluster-region&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/li&gt;
+&lt;li&gt;Create an IAM Policy:
+&lt;ol&gt;
+&lt;li&gt;Make sure to replace the following in the below command:
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;&amp;lt;desired-amp-policy-name&amp;gt;&lt;/strong&gt; - a policy name of your choosing&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;export AMP_POLICY_NAME=&amp;lt;desired-amp-policy-name&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/li&gt;
+&lt;li&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;export AMP_POLICY_ARN=$(aws iam create-policy --policy-name $AMP_POLICY_NAME --policy-document file://deployments/add-ons/prometheus/AMPIngestPermissionPolicy.json --query &amp;#39;Policy.Arn&amp;#39; | tr -d &amp;#39;&amp;#34;&amp;#39;)
+&lt;/code&gt;&lt;/pre&gt;&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/li&gt;
+&lt;li&gt;Create a Service Account:
+&lt;ol&gt;
+&lt;li&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;eksctl create iamserviceaccount --name amp-iamproxy-ingest-service-account --namespace monitoring --cluster $CLUSTER_NAME --attach-policy-arn $AMP_POLICY_ARN --override-existing-serviceaccounts --approve --region $CLUSTER_REGION
+&lt;/code&gt;&lt;/pre&gt;&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/li&gt;
+&lt;li&gt;Create an AMP Workspace:
+&lt;ol&gt;
+&lt;li&gt;Make sure to replace the following in the below command:
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;&amp;lt;desired-workspace-alias&amp;gt;&lt;/strong&gt; - a workspace alias of your choosing&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;export AMP_WORKSPACE_ALIAS=&amp;lt;desired-amp-workspace-alias&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/li&gt;
+&lt;li&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;export AMP_WORKSPACE_ARN=$(aws amp create-workspace --region $CLUSTER_REGION --alias $AMP_WORKSPACE_ALIAS --query arn | tr -d &amp;#39;&amp;#34;&amp;#39;)
+&lt;/code&gt;&lt;/pre&gt;&lt;/li&gt;
+&lt;li&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;export AMP_WORKSPACE_REGION=$(echo $AMP_WORKSPACE_ARN | cut -d&amp;#39;:&amp;#39; -f4)
+&lt;/code&gt;&lt;/pre&gt;&lt;/li&gt;
+&lt;li&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;export AMP_WORKSPACE_ID=$(echo $AMP_WORKSPACE_ARN | cut -d&amp;#39;:&amp;#39; -f6 | cut -d&amp;#39;/&amp;#39; -f2)
+&lt;/code&gt;&lt;/pre&gt;&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/li&gt;
+&lt;li&gt;Update deployments/add-ons/prometheus/params.env with your workspace id and region:
+&lt;ol&gt;
+&lt;li&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;pushd tests; python3 -c &amp;#39;import os; import e2e.utils.prometheus.setup_prometheus_server as setup_prometheus_server; region = os.environ[&amp;#34;AMP_WORKSPACE_REGION&amp;#34;]; workspace_id = os.environ[&amp;#34;AMP_WORKSPACE_ID&amp;#34;]; local_prometheus_port = os.environ[&amp;#34;LOCAL_PROMETHEUS_PORT&amp;#34;]; setup_prometheus_server.update_params_env(workspace_id, region, params_env_file_path=&amp;#34;../deployments/add-ons/prometheus/params.env&amp;#34;)&amp;#39;; popd
+&lt;/code&gt;&lt;/pre&gt;&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/li&gt;
+&lt;li&gt;Run the kustomize build command to build your prometheus resources:
+&lt;ol&gt;
+&lt;li&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;kustomize build deployments/add-ons/prometheus | kubectl apply -f -
+&lt;/code&gt;&lt;/pre&gt;&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2 id=&#34;steps-to-verify-prometheus-and-amp-are-connected&#34;&gt;Steps to Verify Prometheus and AMP are Connected&lt;/h2&gt;
+&lt;ol&gt;
+&lt;li&gt;Make sure you have awscurl installed:
+&lt;ol&gt;
+&lt;li&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;pip3 install awscurl
+&lt;/code&gt;&lt;/pre&gt;&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/li&gt;
+&lt;li&gt;Start port-forwarding for the prometheus pod:
+&lt;ol&gt;
+&lt;li&gt;Make sure to replace the following in the below command:
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;&amp;lt;desired-local-port&amp;gt;&lt;/strong&gt; - a workspace alias of your choosing&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;export LOCAL_PROMETHEUS_PORT=&amp;lt;desired-local-port&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/li&gt;
+&lt;li&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;kubectl port-forward $(kubectl get pods --namespace=monitoring | grep &amp;#34;prometheus-deployment&amp;#34; | cut -d&amp;#39; &amp;#39; -f1) $LOCAL_PROMETHEUS_PORT:9090 --namespace=monitoring &amp;amp;
+&lt;/code&gt;&lt;/pre&gt;&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/li&gt;
+&lt;li&gt;Make sure your credentials are in ~/.aws/credentials:
+&lt;ol&gt;
+&lt;li&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;aws configure
+&lt;/code&gt;&lt;/pre&gt;&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/li&gt;
+&lt;li&gt;Run the below command to verify the KFP create experiment count metric is being correctly exported to AMP:
+&lt;ol&gt;
+&lt;li&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;pushd tests; python3 -c &amp;#39;import os; import e2e.utils.prometheus.setup_prometheus_server as setup_prometheus_server; cluster_region = os.environ[&amp;#34;CLUSTER_REGION&amp;#34;]; workspace_id = os.environ[&amp;#34;AMP_WORKSPACE_ID&amp;#34;]; setup_prometheus_server.local_prometheus_port = os.environ[&amp;#34;LOCAL_PROMETHEUS_PORT&amp;#34;]; setup_prometheus_server.check_AMP_connects_to_prometheus(cluster_region, workspace_id, expected_value=0)&amp;#39;; popd
+&lt;/code&gt;&lt;/pre&gt;&lt;/li&gt;
+&lt;li&gt;If all is working, this should not trigger an assertion error.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/li&gt;
+&lt;li&gt;Get the PID and kill the port-forwarding process:
+&lt;ol&gt;
+&lt;li&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;export PORT_FORWARDING_PROCESS=$(lsof -i :$LOCAL_PROMETHEUS_PORT | sed -n 2p | cut -d&amp;#39; &amp;#39; -f2)
+&lt;/code&gt;&lt;/pre&gt;&lt;/li&gt;
+&lt;li&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;kill $PORT_FORWARDING_PROCESS
+&lt;/code&gt;&lt;/pre&gt;&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+
+      </description>
+    </item>
+    
   </channel>
 </rss>
